@@ -1,5 +1,6 @@
 import type { NextPage } from 'next'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 import { FormEvent, useState, ChangeEvent } from 'react'
 
 interface AppState {
@@ -10,6 +11,9 @@ interface AppState {
 }
 
 const Index: NextPage = () => {
+	const router = useRouter()
+
+	//TODO add validation
 	const [form, setform] = useState<AppState['form']>({
 		email: '',
 		password: '',
@@ -24,6 +28,7 @@ const Index: NextPage = () => {
 
 	function submitForm(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault()
+		router.push('/home')
 	}
 	return (
 		<>
@@ -34,7 +39,7 @@ const Index: NextPage = () => {
 						alt="calima logo"
 						width="622"
 						height="124"
-						className="object-cointain"
+						className="object-contain"
 					/>
 				</figure>
 				<h1 className="fs-xl">HolyCards</h1>
@@ -57,7 +62,7 @@ const Index: NextPage = () => {
 							pattern=".*@calimasolutions.com"
 							placeholder="mrduck@calimasolutions.com"
 							required
-							className="border border-gray rounded-md p-1 text-white fs-base bg-black"
+							className="border border-gray rounded-md p-1 fs-base bg-black"
 						/>
 					</label>
 
@@ -72,11 +77,11 @@ const Index: NextPage = () => {
 							min={8}
 							max={50}
 							required
-							className="border border-gray rounded-md p-1 text-white fs-base bg-black"
+							className="border border-gray rounded-md p-1 fs-base bg-black"
 						/>
 					</label>
 
-					<button className="uppercase bg-primary rounded-md px-6 py-1 self-center fs-base">
+					<button className="uppercase bg-primary rounded-md px-6 py-1 self-center fs-base text-black">
 						Login
 					</button>
 				</form>
