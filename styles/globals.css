@@ -8,6 +8,7 @@
 	body {
 		background-color: #252525;
 		scroll-behavior: smooth;
+		color: #e2e8f0;
 	}
 }
 @layer components {

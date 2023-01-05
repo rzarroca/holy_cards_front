@@ -8,10 +8,10 @@ module.exports = {
 	theme: {
 		colors: {
 			black: '#252525',
-			white: 'rgb(226, 232, 240)',
-			gray: 'rgb(148, 163, 184)',
-			primary: 'rgb(251, 191, 36)',
-			secondary: 'rgb(245, 158, 11)',
+			white: '#e2e8f0',
+			gray: '#94a3b8',
+			primary: '#fbbf24',
+			secondary: '#f59e0b',
 		},
 		extend: {},
 	},
