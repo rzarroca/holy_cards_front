@@ -7,7 +7,7 @@ type Props = {
 
 const Layout = ({ children = null }: Props) => (
 	<>
-		<header className="flex justify-around items-center pt-[2vh]">
+		<header className="flex justify-around items-center p-[2vh]">
 			<figure className="w-[10vw] max-w-[60px] min-w-[32px]">
 				<Image
 					src="/calima_logo_small.png"
@@ -19,10 +19,9 @@ const Layout = ({ children = null }: Props) => (
 			</figure>
 			<h4 className="fs-md">HolyCards</h4>
 		</header>
-
 		{children}
 
-		<footer className="fs-sm absolute bottom-0 w-full text-center pb-[2vh]">
+		<footer className="fs-sm w-full text-center p-[2vh]">
 			© calimadev team - 2023
 		</footer>
 	</>

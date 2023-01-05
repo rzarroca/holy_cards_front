@@ -9,6 +9,7 @@
 		background-color: #252525;
 		scroll-behavior: smooth;
 		color: #e2e8f0;
+		font-size: var(--font-size-base);
 	}
 }
 @layer components {
