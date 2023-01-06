@@ -17,7 +17,7 @@ const Home: NextPageWithLayout = () => {
 				</header>
 
 				<nav className="flex flex-col gap-[4vh] items-center">
-					<Link href={'/holycards'}>HolyCards</Link>
+					<Link href={'/holycards/1'}>HolyCards</Link>
 					<Link href={'/user/calendar'}>My Calendar</Link>
 				</nav>
 			</main>
