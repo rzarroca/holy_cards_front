@@ -1,26 +1,19 @@
 import type { ReactNode, ChangeEvent } from 'react'
 import { InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
+import { HolyCard } from 'pages/types'
 
-import Image from 'next/image'
 import Head from 'next/head'
 import Layout from 'components/Layout'
-
-interface HolyCard {
-	id: number
-	name: string
-	description: string
-	is_active: boolean
-	image: string
-}
-
-const API_HOST = process.env.API_HOST
+import Card from 'components/HolyCard'
 
 export default function HolyCards({
 	holyCards,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const router = useRouter()
 	const pathId = Number(router.query.id)
+
+	const activeCard = holyCards.filter((element) => element.id === pathId)[0]
 
 	function handleChange(e: ChangeEvent<HTMLSelectElement>) {
 		router.push(`/holycards/${e.target.value}`)
@@ -55,27 +48,7 @@ export default function HolyCards({
 					</select>
 				</nav>
 
-				<article className="self-center border border-gray max-w-lg px-[2vw] py-[2vh] rounded-xl flex flex-col gap-[2vh] items-center text-center">
-					<header>
-						<h2 className="fs-md font-bold text-white">
-							{holyCards[pathId - 1].name}
-						</h2>
-						<p className="fs-base text-gray">
-							{holyCards[pathId - 1].description}
-						</p>
-					</header>
-					<figure className="w-[60vw] max-w-xs">
-						<Image
-							src={`http://localhost:8000/api/v1/${
-								holyCards[pathId - 1].image
-							}`}
-							alt={holyCards[pathId - 1].name}
-							width="450"
-							height="780"
-							className="object-contain"
-						/>
-					</figure>
-				</article>
+				<Card holyCard={activeCard} />
 			</main>
 		</>
 	)
@@ -86,14 +59,16 @@ HolyCards.getLayout = function getLayout(page: ReactNode) {
 }
 
 export async function getServerSideProps() {
-	var myHeaders = new Headers()
+	const API_HOST = process.env.API_HOST
+
+	const myHeaders = new Headers()
 	myHeaders.append('Accept', 'application/json')
 	myHeaders.append(
 		'Authorization',
 		'Bearer 3|9IKZ7qLQCheNRNvL4m4eE78uQPqgT6TcVLxSudlE'
 	)
 
-	var requestOptions = {
+	const requestOptions = {
 		method: 'GET',
 		headers: myHeaders,
 	}
@@ -102,7 +77,7 @@ export async function getServerSideProps() {
 		(response) => response.json()
 	)
 
-	const holyCards: HolyCard[] = res.data
+	const holyCards: Array<HolyCard> = res.data
 	return {
 		props: {
 			holyCards,
