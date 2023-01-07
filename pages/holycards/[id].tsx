@@ -1,5 +1,5 @@
 import 'react-modern-calendar-datepicker/lib/DatePicker.css'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
 
@@ -7,6 +7,7 @@ import type { ReactNode, ChangeEvent } from 'react'
 import type { HolyCard } from 'pages/types'
 
 import { addMonths, parseCalendarDate } from 'utils/dateUtils'
+import useHCReservations from 'hooks/useHCReservations'
 
 import Head from 'next/head'
 import Layout from 'components/Layout'
@@ -30,15 +31,8 @@ export default function HolyCards({
 		from: null,
 		to: null,
 	})
-	const [disabledDays, setDisabledDays] = useState<State['disabledDays']>([])
 
-	useEffect(() => {
-		fetch(`/api/reservations/${pathId}`)
-			.then((response) => response.json())
-			.then((result) => {
-				setDisabledDays(result.data)
-			})
-	}, [pathId])
+	const { reservations, error, isLoading } = useHCReservations(pathId)
 
 	function handleChange(e: ChangeEvent<HTMLSelectElement>) {
 		router.push(`/holycards/${e.target.value}`)
@@ -81,16 +75,22 @@ export default function HolyCards({
 					<article className="border border-gray max-w-lg px-[2vw] py-[2vh] rounded-xl flex flex-col gap-[2vh] items-center text-center">
 						<h3 className="fs-md font-bold text-white">Pick your Dates</h3>
 
-						<Calendar
-							value={selectedDayRange}
-							onChange={setSelectedDayRange}
-							minimumDate={parseCalendarDate(new Date())}
-							maximumDate={parseCalendarDate(addMonths(3))}
-							disabledDays={disabledDays}
-							colorPrimary="#fbbf24"
-							colorPrimaryLight="#f59e0b"
-							shouldHighlightWeekends
-						/>
+						{error && (
+							<p>{error?.message ?? 'Error on calendar. Please try again.'}</p>
+						)}
+						{isLoading && <p>Loading calendar...</p>}
+						{reservations && (
+							<Calendar
+								value={selectedDayRange}
+								onChange={setSelectedDayRange}
+								minimumDate={parseCalendarDate(new Date())}
+								maximumDate={parseCalendarDate(addMonths(3))}
+								disabledDays={reservations ?? []}
+								colorPrimary="#fbbf24"
+								colorPrimaryLight="#f59e0b"
+								shouldHighlightWeekends
+							/>
+						)}
 
 						<Button>Make reservation</Button>
 					</article>
