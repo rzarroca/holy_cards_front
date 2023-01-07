@@ -1,8 +1,9 @@
 import type { NextPage } from 'next'
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { FormEvent, useState, ChangeEvent } from 'react'
 
+import Image from 'next/image'
+import Button from 'components/Button'
 interface AppState {
 	form: {
 		email: string
@@ -81,9 +82,7 @@ const Index: NextPage = () => {
 						/>
 					</label>
 
-					<button className="uppercase bg-primary rounded-md px-6 py-1 self-center fs-base text-black">
-						Login
-					</button>
+					<Button>Login</Button>
 				</form>
 			</main>
 		</>
