@@ -2,64 +2,41 @@ import 'react-modern-calendar-datepicker/lib/DatePicker.css'
 import { useState, useEffect } from 'react'
 import { InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
+
 import type { ReactNode, ChangeEvent } from 'react'
 import type { HolyCard } from 'pages/types'
-import { addMonths, parseCalendarDate, getListOfDates } from 'utils/dateUtils'
+
+import { addMonths, parseCalendarDate } from 'utils/dateUtils'
 
 import Head from 'next/head'
 import Layout from 'components/Layout'
 import Card from 'components/HolyCard'
-import { Calendar, Day, DayRange } from 'react-modern-calendar-datepicker'
+import Button from 'components/Button'
+import { Calendar, DayRange, Day } from 'react-modern-calendar-datepicker'
 
-// TODO: extract button to component
+export interface State {
+	selectedDayRange: DayRange
+	disabledDays: Day[]
+}
 export default function HolyCards({
 	holyCards,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const router = useRouter()
 	const pathId = Number(router.query.id)
 
-	const [selectedDayRange, setSelectedDayRange] = useState<DayRange>({
+	const [selectedDayRange, setSelectedDayRange] = useState<
+		State['selectedDayRange']
+	>({
 		from: null,
 		to: null,
 	})
-	const [disabledDays, setDisabledDays] = useState([])
+	const [disabledDays, setDisabledDays] = useState<State['disabledDays']>([])
 
 	useEffect(() => {
-		const myHeaders = new Headers()
-		myHeaders.append('Accept', 'application/json')
-		myHeaders.append(
-			'Authorization',
-			'Bearer 3|9IKZ7qLQCheNRNvL4m4eE78uQPqgT6TcVLxSudlE'
-		)
-
-		const requestOptions = {
-			method: 'GET',
-			headers: myHeaders,
-		}
-
-		fetch(
-			`http://localhost:8000/api/v1/holycards/${pathId}/reservations`,
-			requestOptions
-		)
+		fetch(`/api/reservations/${pathId}`)
 			.then((response) => response.json())
 			.then((result) => {
-				const listOfReservedDays: any = []
-				const reservations = result.data
-
-				reservations.forEach((reservation: any) => {
-					const reservedDays = getListOfDates(
-						reservation.start_date,
-						reservation.end_date
-					)
-
-					const parsedReservedDays = reservedDays.map((day) =>
-						parseCalendarDate(day)
-					)
-
-					listOfReservedDays.push(...parsedReservedDays)
-				})
-
-				setDisabledDays(listOfReservedDays)
+				setDisabledDays(result.data)
 			})
 	}, [pathId])
 
@@ -100,6 +77,7 @@ export default function HolyCards({
 					<Card
 						holyCard={holyCards.filter((element) => element.id === pathId)[0]}
 					/>
+
 					<article className="border border-gray max-w-lg px-[2vw] py-[2vh] rounded-xl flex flex-col gap-[2vh] items-center text-center">
 						<h3 className="fs-md font-bold text-white">Pick your Dates</h3>
 
@@ -114,9 +92,7 @@ export default function HolyCards({
 							shouldHighlightWeekends
 						/>
 
-						<button className="uppercase bg-primary rounded-md px-6 py-1 self-center fs-base text-black">
-							Make reservation
-						</button>
+						<Button>Make reservation</Button>
 					</article>
 				</section>
 			</main>
