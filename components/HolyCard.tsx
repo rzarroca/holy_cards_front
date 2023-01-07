@@ -1,7 +1,7 @@
 import { HolyCard as HCard } from 'pages/types'
 import Image from 'next/image'
 
-interface Props {
+export interface Props {
 	holyCard: HCard
 }
 
