@@ -14,7 +14,7 @@ export default function HolyCard({ holyCard }: Props) {
 			</header>
 			<figure className="w-[60vw] max-w-xs">
 				<Image
-					src={`http://localhost:8000/api/v1/${holyCard.image}`}
+					src={`http://localhost:8000${holyCard.image_url}`}
 					alt={holyCard.name}
 					width="450"
 					height="780"

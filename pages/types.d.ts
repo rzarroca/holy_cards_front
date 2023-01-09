@@ -3,5 +3,5 @@ export interface HolyCard {
 	name: string
 	description: string
 	is_active: boolean
-	image: string
+	image_url: string
 }
