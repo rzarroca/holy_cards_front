@@ -1,20 +1,22 @@
-import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import { FormEvent, useState, ChangeEvent } from 'react'
-
-import Image from 'next/image'
+import { AxiosError } from 'axios'
+import { serverReq } from 'lib/requests'
 import Button from 'components/Button'
-interface AppState {
+import Image from 'next/image'
+import type { NextPage } from 'next'
+export interface AppState {
 	form: {
 		email: string
 		password: string
 	}
+	errorMsg: string
 }
 
 const Index: NextPage = () => {
 	const router = useRouter()
 
-	//TODO add validation
+	const [errorMsg, setErrorMsg] = useState<AppState['errorMsg']>('')
 	const [form, setform] = useState<AppState['form']>({
 		email: '',
 		password: '',
@@ -27,10 +29,27 @@ const Index: NextPage = () => {
 		})
 	}
 
-	function submitForm(e: FormEvent<HTMLFormElement>) {
+	async function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault()
-		router.push('/home')
+
+		try {
+			const response = await serverReq.post('/auth/login', {
+				email: form.email,
+				password: form.password,
+			})
+
+			router.push('/home')
+		} catch (error) {
+			console.log(error)
+
+			if (error instanceof AxiosError && error.response?.status === 422) {
+				setErrorMsg('Error on credentials, check email or password')
+			} else {
+				setErrorMsg('Error on login, please try again')
+			}
+		}
 	}
+
 	return (
 		<>
 			<header className="flex flex-col gap-[5vh] items-center p-[8vh]  text-white">
@@ -49,7 +68,7 @@ const Index: NextPage = () => {
 
 			<main className="flex flex-col items-center">
 				<form
-					onSubmit={submitForm}
+					onSubmit={handleSubmit}
 					className="flex flex-col gap-[2vh] w-[75vw] max-w-xl"
 				>
 					<label htmlFor="email" className="flex flex-col gap-[1vh]">
@@ -75,13 +94,14 @@ const Index: NextPage = () => {
 							name="password"
 							value={form.password}
 							onChange={handleChange}
-							min={8}
+							min="8"
 							max={50}
 							required
 							className="border border-gray rounded-md p-1 fs-base bg-black"
 						/>
 					</label>
 
+					<p className="text-secondary fs-sm text-center">{errorMsg}</p>
 					<Button>Login</Button>
 				</form>
 			</main>
