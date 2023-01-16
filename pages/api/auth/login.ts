@@ -16,6 +16,7 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
 		const user = {
 			user: data.data,
 			token: data.token,
+			isLoggedIn: true
 		} as SessionUser
 
 		req.session.user = user
@@ -24,8 +25,6 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
 		res.status(200).json(user)
 	} catch (error) {
 		if (error instanceof AxiosError) {
-			console.log('inside axios', error)
-
 			res.status(error.response?.status as number).json({
 				message: error.response?.data.message,
 			})

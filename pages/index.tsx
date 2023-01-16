@@ -1,10 +1,10 @@
-import { useRouter } from 'next/router'
 import { FormEvent, useState, ChangeEvent } from 'react'
 import { AxiosError } from 'axios'
 import { serverReq } from 'lib/requests'
 import Button from 'components/Button'
 import Image from 'next/image'
 import type { NextPage } from 'next'
+import useUser from 'hooks/useUser'
 export interface AppState {
 	form: {
 		email: string
@@ -14,12 +14,15 @@ export interface AppState {
 }
 
 const Index: NextPage = () => {
-	const router = useRouter()
-
 	const [errorMsg, setErrorMsg] = useState<AppState['errorMsg']>('')
 	const [form, setform] = useState<AppState['form']>({
 		email: '',
 		password: '',
+	})
+
+	const { mutateUser } = useUser({
+		redirectTo: '/home',
+		redirectIfFound: true,
 	})
 
 	function handleChange(e: ChangeEvent<HTMLInputElement>) {
@@ -38,7 +41,7 @@ const Index: NextPage = () => {
 				password: form.password,
 			})
 
-			router.push('/home')
+			mutateUser(response.data)
 		} catch (error) {
 			console.log(error)
 

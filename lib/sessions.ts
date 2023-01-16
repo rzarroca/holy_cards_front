@@ -9,8 +9,9 @@ import {
 } from 'next'
 
 export interface SessionUser {
-	user?: User
-	token?: string
+	user: User | null
+	token: string
+	isLoggedIn: boolean
 }
 
 declare module 'iron-session' {
