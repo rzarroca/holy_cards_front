@@ -23,12 +23,22 @@ export default function Avatar() {
 
 	return (
 		<article className="relative inline-block">
-			<button onClick={() => setshowUserMenu(!showUserMenu)}>
-				{user?.name}
+			<button
+				onClick={() => setshowUserMenu(!showUserMenu)}
+				className="bg-gray text-white px-6 py-1 self-center rounded-md"
+			>
+				{user?.name} ⌄
 			</button>
-			<ul className="absolute z-10 mt-[2vh] w-full text-right">
-				<li className="block">
-					{showUserMenu && <button onClick={logoutUser}>Logout</button>}
+			<ul className="absolute z-10 mt-[1vh] w-full text-right flex flex-col gap-[0.5vh]">
+				<li className="block ">
+					{showUserMenu && (
+						<button
+							onClick={logoutUser}
+							className="bg-gray text-white px-6 py-1 self-center rounded-md"
+						>
+							Logout
+						</button>
+					)}
 				</li>
 			</ul>
 		</article>
