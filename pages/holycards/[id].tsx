@@ -1,6 +1,6 @@
 import 'react-modern-calendar-datepicker/lib/DatePicker.css'
-import { useState, useEffect } from 'react'
-import { InferGetServerSidePropsType } from 'next'
+import { useState } from 'react'
+import { InferGetServerSidePropsType} from 'next'
 import { useRouter } from 'next/router'
 
 import type { ReactNode, ChangeEvent } from 'react'
@@ -13,32 +13,29 @@ import Layout from 'components/Layout'
 import Card from 'components/HolyCard'
 import Button from 'components/Button'
 import { Calendar, DayRange, Day } from 'react-modern-calendar-datepicker'
-
-export interface State {
+import { withSessionSsr } from 'lib/sessions'
+import { apiReq } from 'lib/requests'
+import useHolyCardReservations from 'hooks/useHolyCardReservations'
+export interface HolyCardState {
 	selectedDayRange: DayRange
 	disabledDays: Day[]
 }
 export default function HolyCards({
 	holyCards,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {	
 	const router = useRouter()
-	const pathId = Number(router.query.id)
+	const holyCardId = Number(router.query.id)
 
 	const [selectedDayRange, setSelectedDayRange] = useState<
-		State['selectedDayRange']
+	HolyCardState['selectedDayRange']
 	>({
 		from: null,
 		to: null,
 	})
-	const [disabledDays, setDisabledDays] = useState<State['disabledDays']>([])
 
-	useEffect(() => {
-		fetch(`/api/reservations/${pathId}`)
-			.then((response) => response.json())
-			.then((result) => {
-				setDisabledDays(result.data)
-			})
-	}, [pathId])
+	const {disabledDays, isLoading, error} = useHolyCardReservations(holyCardId)	
+	console.log({disabledDays, isLoading, error});
+		
 
 	function handleChange(e: ChangeEvent<HTMLSelectElement>) {
 		router.push(`/holycards/${e.target.value}`)
@@ -65,7 +62,7 @@ export default function HolyCards({
 							<option
 								key={element.id}
 								value={element.id}
-								selected={element.id === pathId}
+								selected={element.id === holyCardId}
 							>
 								{element.name}
 							</option>
@@ -75,13 +72,13 @@ export default function HolyCards({
 
 				<section className="self-center flex gap-[6vw] flex-wrap items-center justify-around">
 					<Card
-						holyCard={holyCards.filter((element) => element.id === pathId)[0]}
+						holyCard={holyCards.filter((element) => element.id === holyCardId)[0]}
 					/>
 
 					<article className="border border-gray max-w-lg px-[2vw] py-[2vh] rounded-xl flex flex-col gap-[2vh] items-center text-center">
 						<h3 className="fs-md font-bold text-white">Pick your Dates</h3>
 
-						<Calendar
+ 					{!isLoading && !error && <Calendar
 							value={selectedDayRange}
 							onChange={setSelectedDayRange}
 							minimumDate={parseCalendarDate(new Date())}
@@ -90,7 +87,8 @@ export default function HolyCards({
 							colorPrimary="#fbbf24"
 							colorPrimaryLight="#f59e0b"
 							shouldHighlightWeekends
-						/>
+						/>}
+						
 
 						<Button>Make reservation</Button>
 					</article>
@@ -104,29 +102,30 @@ HolyCards.getLayout = function getLayout(page: ReactNode) {
 	return <Layout>{page}</Layout>
 }
 
-export async function getServerSideProps() {
-	const API_HOST = process.env.API_HOST
+export const getServerSideProps = withSessionSsr(async function handler({req , res}) {
 
-	const myHeaders = new Headers()
-	myHeaders.append('Accept', 'application/json')
-	myHeaders.append(
-		'Authorization',
-		'Bearer 3|9IKZ7qLQCheNRNvL4m4eE78uQPqgT6TcVLxSudlE'
-	)
-
-	const requestOptions = {
-		method: 'GET',
-		headers: myHeaders,
+	const sessionUser = req.session.user;
+	
+  if (sessionUser === undefined || !sessionUser.isLoggedIn) {
+    res.setHeader("location", "/");
+    res.statusCode = 302;
+    res.end();
+    return {
+      props: {
+        holyCards: []
+      },
+    };
 	}
-
-	const res = await fetch(`${API_HOST}/holycards/`, requestOptions).then(
-		(response) => response.json()
-	)
-
-	const holyCards: Array<HolyCard> = res.data
+	
+	const config = {
+    headers: { Authorization: `Bearer ${sessionUser.token}` }
+};
+	const response = await apiReq.get('/holycards', config)
+	const holyCards = response.data.data as HolyCard[]
+	
 	return {
 		props: {
 			holyCards,
 		},
 	}
-}
+})
