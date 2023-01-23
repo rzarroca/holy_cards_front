@@ -1,41 +1,49 @@
-import 'react-modern-calendar-datepicker/lib/DatePicker.css'
+import 'react-date-range/dist/styles.css' // main css file
+import 'react-date-range/dist/theme/default.css' // theme css file
 import { useState } from 'react'
-import { InferGetServerSidePropsType} from 'next'
+import { InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
 
 import type { ReactNode, ChangeEvent } from 'react'
 import type { HolyCard } from 'pages/types'
 
-import { addMonths, parseCalendarDate } from 'utils/dateUtils'
-
 import Head from 'next/head'
 import Layout from 'components/Layout'
 import Card from 'components/HolyCard'
 import Button from 'components/Button'
-import { Calendar, DayRange, Day } from 'react-modern-calendar-datepicker'
 import { withSessionSsr } from 'lib/sessions'
 import { apiReq } from 'lib/requests'
 import useHolyCardReservations from 'hooks/useHolyCardReservations'
+import { DateRange } from 'react-date-range'
+import { addMonths } from 'utils/dateUtils'
+
 export interface HolyCardState {
-	selectedDayRange: DayRange
-	disabledDays: Day[]
+	selectedDays: [
+		{
+			startDate: Date
+			endDate: Date
+			key: string
+		}
+	]
+	disabledDays: Date[]
 }
 export default function HolyCards({
 	holyCards,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {	
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const router = useRouter()
 	const holyCardId = Number(router.query.id)
 
-	const [selectedDayRange, setSelectedDayRange] = useState<
-	HolyCardState['selectedDayRange']
-	>({
-		from: null,
-		to: null,
-	})
+	const [selectedDays, setselectedDays] = useState<
+		HolyCardState['selectedDays']
+	>([
+		{
+			startDate: new Date(),
+			endDate: new Date(),
+			key: 'selection',
+		},
+	])
 
-	const {disabledDays, isLoading, error} = useHolyCardReservations(holyCardId)	
-	console.log({disabledDays, isLoading, error});
-		
+	const { disabledDays, isLoading, error } = useHolyCardReservations(holyCardId)
 
 	function handleChange(e: ChangeEvent<HTMLSelectElement>) {
 		router.push(`/holycards/${e.target.value}`)
@@ -72,23 +80,23 @@ export default function HolyCards({
 
 				<section className="self-center flex gap-[6vw] flex-wrap items-center justify-around">
 					<Card
-						holyCard={holyCards.filter((element) => element.id === holyCardId)[0]}
+						holyCard={
+							holyCards.filter((element) => element.id === holyCardId)[0]
+						}
 					/>
 
 					<article className="border border-gray max-w-lg px-[2vw] py-[2vh] rounded-xl flex flex-col gap-[2vh] items-center text-center">
 						<h3 className="fs-md font-bold text-white">Pick your Dates</h3>
 
- 					{!isLoading && !error && <Calendar
-							value={selectedDayRange}
-							onChange={setSelectedDayRange}
-							minimumDate={parseCalendarDate(new Date())}
-							maximumDate={parseCalendarDate(addMonths(3))}
-							disabledDays={disabledDays}
-							colorPrimary="#fbbf24"
-							colorPrimaryLight="#f59e0b"
-							shouldHighlightWeekends
-						/>}
-						
+						{!isLoading && !error && (
+							<DateRange
+								onChange={(item: any) => setselectedDays([item.selection])}
+								ranges={selectedDays}
+								disabledDates={disabledDays}
+								minDate={new Date()}
+								maxDate={addMonths(3)}
+							/>
+						)}
 
 						<Button>Make reservation</Button>
 					</article>
@@ -102,27 +110,29 @@ HolyCards.getLayout = function getLayout(page: ReactNode) {
 	return <Layout>{page}</Layout>
 }
 
-export const getServerSideProps = withSessionSsr(async function handler({req , res}) {
+export const getServerSideProps = withSessionSsr(async function handler({
+	req,
+	res,
+}) {
+	const sessionUser = req.session.user
 
-	const sessionUser = req.session.user;
-	
-  if (sessionUser === undefined || !sessionUser.isLoggedIn) {
-    res.setHeader("location", "/");
-    res.statusCode = 302;
-    res.end();
-    return {
-      props: {
-        holyCards: []
-      },
-    };
+	if (sessionUser === undefined || !sessionUser.isLoggedIn) {
+		res.setHeader('location', '/')
+		res.statusCode = 302
+		res.end()
+		return {
+			props: {
+				holyCards: [],
+			},
+		}
 	}
-	
+
 	const config = {
-    headers: { Authorization: `Bearer ${sessionUser.token}` }
-};
+		headers: { Authorization: `Bearer ${sessionUser.token}` },
+	}
 	const response = await apiReq.get('/holycards', config)
 	const holyCards = response.data.data as HolyCard[]
-	
+
 	return {
 		props: {
 			holyCards,
