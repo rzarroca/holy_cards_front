@@ -1,6 +1,6 @@
 import 'react-date-range/dist/styles.css' // main css file
 import 'react-date-range/dist/theme/default.css' // theme css file
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -16,6 +16,7 @@ import { addMonths } from 'utils/dateUtils'
 import type { ReactNode, ChangeEvent } from 'react'
 import type { HolyCard } from 'pages/types'
 import type { Reservation } from 'pages/api/reservations'
+import { AxiosError } from 'axios'
 export interface HolyCardState {
 	selectedDays: [
 		{
@@ -25,6 +26,7 @@ export interface HolyCardState {
 		}
 	]
 	disabledDays: Date[]
+	message: string
 }
 
 const INITIAL_SELECTED_DAYS = {
@@ -42,6 +44,7 @@ export default function HolyCards({
 	const [selectedDays, setselectedDays] = useState<
 		HolyCardState['selectedDays']
 	>([INITIAL_SELECTED_DAYS])
+	const [msg, setMsg] = useState<HolyCardState['message']>('')
 
 	const { disabledDays, isLoading, error, mutate } =
 		useHolyCardReservations(holyCardId)
@@ -50,17 +53,33 @@ export default function HolyCards({
 		router.push(`/holycards/${e.target.value}`)
 	}
 
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			setMsg('')
+		}, 3000)
+		return () => clearTimeout(timer)
+	}, [msg])
+
 	async function performReservation() {
 		const newReservation: Reservation = {
 			holyCardId,
 			startDate: selectedDays[0].startDate,
 			endDate: selectedDays[0].endDate,
 		}
+		try {
+			await serverReq.post('/reservations', newReservation)
+			mutate()
+			setselectedDays([INITIAL_SELECTED_DAYS])
+			setMsg('Your reservation was saved')
+		} catch (error) {
+			console.log(error)
 
-		const response = await serverReq.post('/reservations', newReservation)
-
-		mutate()
-		setselectedDays([INITIAL_SELECTED_DAYS])
+			if (error instanceof AxiosError && error.response?.status === 409) {
+				setMsg('There is a conflict on your selected days')
+			} else {
+				setMsg('Error saving your reservation, please try again later')
+			}
+		}
 	}
 
 	return (
@@ -113,6 +132,7 @@ export default function HolyCards({
 						)}
 
 						<Button onClick={performReservation}>Make reservation</Button>
+						<p className="text-secondary fs-sm text-center">{msg}</p>
 					</article>
 				</section>
 			</main>
