@@ -43,8 +43,6 @@ const Index: NextPage = () => {
 
 			mutateUser(response.data)
 		} catch (error) {
-			console.log(error)
-
 			if (error instanceof AxiosError && error.response?.status === 422) {
 				setErrorMsg('Error on credentials, check email or password')
 			} else {
@@ -97,10 +95,11 @@ const Index: NextPage = () => {
 							name="password"
 							value={form.password}
 							onChange={handleChange}
-							min="8"
-							max={50}
+							minLength={8}
+							maxLength={50}
 							required
 							className="border border-gray rounded-md p-1 fs-base bg-black"
+							autoComplete="current-password"
 						/>
 					</label>
 
