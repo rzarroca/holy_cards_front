@@ -3,20 +3,19 @@ import 'react-date-range/dist/theme/default.css' // theme css file
 import { useState } from 'react'
 import { InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
-
-import type { ReactNode, ChangeEvent } from 'react'
-import type { HolyCard } from 'pages/types'
-
 import Head from 'next/head'
 import Layout from 'components/Layout'
 import Card from 'components/HolyCard'
 import Button from 'components/Button'
 import { withSessionSsr } from 'lib/sessions'
-import { apiReq } from 'lib/requests'
+import { apiReq, serverReq } from 'lib/requests'
 import useHolyCardReservations from 'hooks/useHolyCardReservations'
 import { DateRange } from 'react-date-range'
 import { addMonths } from 'utils/dateUtils'
 
+import type { ReactNode, ChangeEvent } from 'react'
+import type { HolyCard } from 'pages/types'
+import type { Reservation } from 'pages/api/reservations'
 export interface HolyCardState {
 	selectedDays: [
 		{
@@ -27,6 +26,13 @@ export interface HolyCardState {
 	]
 	disabledDays: Date[]
 }
+
+const INITIAL_SELECTED_DAYS = {
+	startDate: new Date(),
+	endDate: new Date(),
+	key: 'selection',
+}
+
 export default function HolyCards({
 	holyCards,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
@@ -35,18 +41,26 @@ export default function HolyCards({
 
 	const [selectedDays, setselectedDays] = useState<
 		HolyCardState['selectedDays']
-	>([
-		{
-			startDate: new Date(),
-			endDate: new Date(),
-			key: 'selection',
-		},
-	])
+	>([INITIAL_SELECTED_DAYS])
 
-	const { disabledDays, isLoading, error } = useHolyCardReservations(holyCardId)
+	const { disabledDays, isLoading, error, mutate } =
+		useHolyCardReservations(holyCardId)
 
 	function handleChange(e: ChangeEvent<HTMLSelectElement>) {
 		router.push(`/holycards/${e.target.value}`)
+	}
+
+	async function performReservation() {
+		const newReservation: Reservation = {
+			holyCardId,
+			startDate: selectedDays[0].startDate,
+			endDate: selectedDays[0].endDate,
+		}
+
+		const response = await serverReq.post('/reservations', newReservation)
+
+		mutate()
+		setselectedDays([INITIAL_SELECTED_DAYS])
 	}
 
 	return (
@@ -98,7 +112,7 @@ export default function HolyCards({
 							/>
 						)}
 
-						<Button>Make reservation</Button>
+						<Button onClick={performReservation}>Make reservation</Button>
 					</article>
 				</section>
 			</main>
