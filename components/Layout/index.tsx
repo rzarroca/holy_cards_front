@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import useUser from 'hooks/useUser'
 import Avatar from './Avatar'
+import BackButton from './BackButton'
 
 type Props = {
 	children: ReactNode
@@ -14,6 +15,7 @@ const Layout = ({ children = null }: Props) => {
 	return (
 		<>
 			<header className="flex justify-around items-end p-[2vh]">
+				<BackButton />
 				<Link href={user ? '/home' : '/'}>
 					<figure className="w-[10vw] max-w-[60px] min-w-[32px]">
 						<Image

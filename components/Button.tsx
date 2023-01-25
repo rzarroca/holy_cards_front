@@ -2,7 +2,7 @@ import { MouseEvent, ReactNode } from 'react'
 
 export interface Props {
 	children: ReactNode
-	onClick?: () => {}
+	onClick?: () => {} | void
 }
 
 export default function Button({ children, onClick }: Props) {
@@ -14,7 +14,7 @@ export default function Button({ children, onClick }: Props) {
 	return (
 		<button
 			onClick={handleMouseEvent}
-			className="uppercase bg-primary rounded-md px-6 py-1 self-center fs-base text-black"
+			className="uppercase bg-primary rounded-md px-[3vw] py-[0.5vh] self-center fs-base text-black"
 		>
 			{children}
 		</button>
