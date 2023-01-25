@@ -2,7 +2,6 @@ import { AxiosError } from 'axios'
 import { apiReq } from 'lib/requests'
 import { withSessionRoute } from 'lib/sessions'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { ApiError } from 'next/dist/server/api-utils'
 
 export interface Reservation {
 	holyCardId: number
